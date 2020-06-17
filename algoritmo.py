@@ -1,13 +1,15 @@
+import xlsxwriter
+
 def AgregarDePana(Bucket, valor, gnumber):
     # Flag de si entró el valor o no.
     flag = False
     # Si está vacío lo agregamos así nomá
-    length = len(Bucket(gnumber))
+    length = len(Bucket[gnumber])
     if length == 0:
         Bucket[gnumber].append(valor)
     else:
         for v in range(len(Bucket[gnumber])):
-            if valor[1] > Bucket[grupom][i][1]:
+            if valor[1] > Bucket[grupom][v][1]:
                 Bucket[grupom].insert(v, valor)
                 flag = True
                 break
@@ -16,8 +18,9 @@ def AgregarDePana(Bucket, valor, gnumber):
             Bucket[gnumber].append(valor)
     
     # Revisamos si el diccionario modificado tiene más vacantes de lo disponible, eliminamos el último
-    if length > grupos[gnumber-1][2]:
+    if length+1 > grupos[gnumber-1][6]:
         del Bucket[gnumber][-1]
+
 #Cargar los grupos de carreras agrupados por ponderaciones.
 grupos = []
 file = open("grupos.csv", "r")
@@ -45,7 +48,10 @@ file.close()
 buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
 datos = []
 file = open("mini.csv", "r")
+grupom = 1
 for line in file:
+    if(grupom > 12):
+        grupom = 1
     string = line.split(";")
     # Pasar a int
     for i in range(7):
@@ -61,17 +67,16 @@ for line in file:
         del string[5]
 
     # Ponderar
-    maximo = 0
-    grupom = 0
-    for g in grupos:
-        suma = 0
-        for i in range(1,6):
-            suma += string[i] * g[i]
-        if(suma > maximo):
-            maximo = suma
-            grupom = g[-1]
+    suma = 0
+    for i in range(1,6):
+        suma += string[i] * grupos[grupom-1][i]
+        maximo = round(suma, 2)
     valor.append(maximo) # Agregar el puntaje ponderado maximo
     # Funcion auxiliar: agregar de pana. (Ordenados)
-    buckets[grupom].append(valor)
-file.close
+    ##debug| buckets[grupom].append(valor)
+    AgregarDePana(buckets, valor, grupom)
+    grupom = grupom + 1
+
+file.close()
 print(buckets)
+
