@@ -6,6 +6,7 @@ archivo_carreras = "carreras.csv"
 
 # Nombre de los archivos (debug)
 archivo_datos = "ejemplo.csv"
+archivo_output = "holiwi.xlsx"
 
 def AgregarDePana(Bucket, valor, gnumber):
     # Flag de si entró el valor o no.
@@ -25,7 +26,7 @@ def AgregarDePana(Bucket, valor, gnumber):
             Bucket[gnumber].append(valor)
     
     # Revisamos si el diccionario modificado tiene más vacantes de lo disponible, eliminamos el último
-    if length+1 >= grupos[gnumber-1][6]:
+    if length > grupos[gnumber-1][6]:
         del Bucket[gnumber][-1]
 
 #Cargar los grupos de carreras agrupados por ponderaciones.
@@ -86,29 +87,29 @@ for line in file:
     AgregarDePana(buckets, valor, grupom)
 
 file.close()
-print(buckets)
+#print(buckets)
 
-#def EscribirExcel:
-excel = xlsxwriter.Workbook('holiwi.xlsx')
-for item in carreras:
-    worksheets = []
-    worksheets.append(excel.add_worksheet(item[0]))
-    row = 0
-    contador = 0
-    col = 0
-    vacantes = item[-2]
-    lista = list(buckets[item[-1]])
-    for b in range(len(lista)): # El grupo al que pertenecen las carreras está al final; V es la tupla
-        if(row == item[1]):
-            break
-        worksheets[-1].write(row, col, lista[0][0]) # Debemos acceder al ultimo worksheet; y al primer elemento de la lista (mayor) 
-        worksheets[-1].write(row, col+1, lista[0][1]) # 0 y 1 son rut y ptje ponderado
-        # Eliminamos el primer elemento y avanzamos el puntero
-        row += 1
-        del lista[0]
-        contador += 1
-    # También debemos sacar los elementos de la bucket
-    del buckets[item[-1]][:contador]
+def EscribirExcel():
+    excel = xlsxwriter.Workbook(archivo_output)
+    for item in carreras:
+        worksheets = []
+        worksheets.append(excel.add_worksheet(item[0]))
+        row = 0
+        contador = 0
+        col = 0
+        vacantes = item[1]
+        lista = list(buckets[item[-1]])
+        for b in range(len(lista)): # El grupo al que pertenecen las carreras está al final; V es la tupla
+            if(row == vacantes):
+                break
+            worksheets[-1].write(row, col, lista[0][0]) # Debemos acceder al ultimo worksheet; y al primer elemento de la lista (mayor) 
+            worksheets[-1].write(row, col+1, lista[0][1]) # 0 y 1 son rut y ptje ponderado
+            # Eliminamos el primer elemento y avanzamos el puntero
+            row += 1
+            del lista[0]
+            contador += 1
+        # También debemos sacar los elementos de la bucket
+        del buckets[item[-1]][:contador]
+    excel.close()
 
-
-excel.close()
+EscribirExcel()
