@@ -1,4 +1,9 @@
 import xlsxwriter
+import base64
+
+buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
+grupos = []
+carreras = []
 
 # Informacion
 archivo_grupos = "grupos.csv"
@@ -30,7 +35,6 @@ def AgregarDePana(Bucket, valor, gnumber):
         del Bucket[gnumber][-1]
 
 #Cargar los grupos de carreras agrupados por ponderaciones.
-grupos = []
 file = open(archivo_grupos , "r")
 for line in file:
     string = line.split(",")
@@ -43,7 +47,6 @@ for line in file:
 file.close()
 
 #Cargar los nombres de las carreras
-carreras = []
 file = open(archivo_carreras, "r")
 for line in file:
     string = line.split(",")
@@ -53,8 +56,7 @@ for line in file:
 file.close()
 
 #Parsear postulantes
-buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
-datos = []
+
 file = open(archivo_datos, "r")
 for line in file:
     string = line.split(";")
@@ -112,4 +114,17 @@ def EscribirExcel():
         del buckets[item[-1]][:contador]
     excel.close()
 
+def Encode():
+    data = open(archivo_output, 'rb').read()
+    base64_encoded = base64.b64encode(data)
+    print(base64_encoded)
+
+def Decode():
+    data = open("holiwi.bin", 'rb').read()
+    base64_decoded = base64.decodebytes(data)
+    file = open("nuevo.xlsx", 'wb')
+    file.write(base64_decoded)
+
 EscribirExcel()
+Encode()
+Decode()
