@@ -25,5 +25,5 @@ try:
     xlFile.write(xlDecoded)
     xlFile.close()
     print("Se creo el archivo exitosamente")
-except Error as e:
-    print(e)
+except:
+    print("Error al obtener datos, intente nuevamente")
