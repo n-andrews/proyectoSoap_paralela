@@ -1,10 +1,6 @@
 import xlsxwriter
 import base64
 
-buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
-grupos = []
-carreras = []
-
 # Informacion
 archivo_grupos = "grupos.csv"
 archivo_carreras = "carreras.csv"
@@ -13,7 +9,8 @@ archivo_carreras = "carreras.csv"
 archivo_datos = "ejemplo.csv"
 archivo_output = "holiwi.xlsx"
 
-def AgregarDePana(Bucket, valor, gnumber):
+# Agrear ordenados de mayor a menor y eliminar los excedentes 
+def AgregarDePana(Bucket, valor, gnumber, grupos):
     # Flag de si entró el valor o no.
     flag = False
     # Si está vacío lo agregamos así nomá
@@ -22,8 +19,8 @@ def AgregarDePana(Bucket, valor, gnumber):
         Bucket[gnumber].append(valor)
     else:
         for v in range(length):
-            if valor[1] > Bucket[grupom][v][1]:
-                Bucket[grupom].insert(v, valor)
+            if valor[1] > Bucket[gnumber][v][1]:
+                Bucket[gnumber].insert(v, valor)
                 flag = True
                 break
         # Si no ha entrado el valor, y el arreglo en la bucket es menor al máximo de vacantes por grupo, entonces lo agregamos al final
@@ -33,65 +30,71 @@ def AgregarDePana(Bucket, valor, gnumber):
     # Revisamos si el diccionario modificado tiene más vacantes de lo disponible, eliminamos el último
     if length > grupos[gnumber-1][6]:
         del Bucket[gnumber][-1]
+    return Bucket
+    
+def CargarDatos():
+    grupos = []
+    carreras = []
+    #Cargar los grupos de carreras agrupados por ponderaciones.
+    file = open(archivo_grupos , "r")
+    for line in file:
+        string = line.split(",")
+        for i in range(1,8):
+            if(i < 6):
+                string[i] = int(string[i])/100
+            else:
+                string[i] = int(string[i])
+        grupos.append(string)
+    file.close()
 
-#Cargar los grupos de carreras agrupados por ponderaciones.
-file = open(archivo_grupos , "r")
-for line in file:
-    string = line.split(",")
-    for i in range(1,8):
-        if(i < 6):
-            string[i] = int(string[i])/100
-        else:
+    #Cargar los nombres de las carreras
+    file = open(archivo_carreras, "r")
+    for line in file:
+        string = line.split(",")
+        for i in range(1,3):
             string[i] = int(string[i])
-    grupos.append(string)
-file.close()
-
-#Cargar los nombres de las carreras
-file = open(archivo_carreras, "r")
-for line in file:
-    string = line.split(",")
-    for i in range(1,3):
-        string[i] = int(string[i])
-    carreras.append(string)
-file.close()
+        carreras.append(string)
+    file.close()
+    return grupos, carreras
 
 #Parsear postulantes
+def ParseData(buckets, grupos):
+    file = open(archivo_datos, "r")
+    for line in file:
+        string = line.split(";")
+        # Pasar a int
+        for i in range(7):
+            string[i] = int(string[i])
 
-file = open(archivo_datos, "r")
-for line in file:
-    string = line.split(";")
-    # Pasar a int
-    for i in range(7):
-        string[i] = int(string[i])
+        valor = []
+        valor.append(string[0]) # Agregar el rut
 
-    valor = []
-    valor.append(string[0]) # Agregar el rut
+        # Debido a que la utem permite ciencias o historia, sacamos el menor puntaje entre los 2.
+        if(string[5] >= string[6]):
+            del string[6]
+        else:
+            del string[5]
 
-    # Debido a que la utem permite ciencias o historia, sacamos el menor puntaje entre los 2.
-    if(string[5] >= string[6]):
-        del string[6]
-    else:
-        del string[5]
-
-    # Ponderar
-    maximo = 0
-    grupom = 0
-    for g in grupos:
-        suma = 0
-        for i in range(1,6):
-            suma += string[i] * g[i]
-        if(suma > maximo):
-            maximo = suma
-            grupom = g[-1]
-    valor.append(maximo) # Agregar el puntaje ponderado maximo
-    # Funcion auxiliar: agregar de pana. (Ordenados)
-    #buckets[grupom].append(valor)
-    AgregarDePana(buckets, valor, grupom)
-
-file.close()
+        # Ponderar
+        maximo = 0
+        grupom = 0
+        for g in grupos:
+            suma = 0
+            for i in range(1,6):
+                suma += string[i] * g[i]
+            if(suma > maximo):
+                maximo = suma
+                grupom = g[-1]
+        valor.append(maximo) # Agregar el puntaje ponderado maximo
+        # Funcion auxiliar: agregar de pana. (Ordenados)
+        #buckets[grupom].append(valor)
+        #buckets = 
+        AgregarDePana(buckets, valor, grupom, grupos)
+    file.close()
+    #return buckets
 #print(buckets)
 
-def EscribirExcel():
+def EscribirExcel(buckets, carreras):
     excel = xlsxwriter.Workbook(archivo_output)
     for item in carreras:
         worksheets = []
@@ -114,17 +117,26 @@ def EscribirExcel():
         del buckets[item[-1]][:contador]
     excel.close()
 
-def Encode():
-    data = open(archivo_output, 'rb').read()
+# Recibe el nombre del archivo y retorna el string en b64 | Debería pedir los datos en vez del nombre.
+def Encode(archivo_out):
+    data = open(archivo_out, 'rb').read()
     base64_encoded = base64.b64encode(data)
-    print(base64_encoded)
+    #file = open("archivo.bin", 'wb').write(base64_encoded)
+    return base64_encoded
 
-def Decode():
-    data = open("holiwi.bin", 'rb').read()
+# Recibe datos en b64 y los decodifica.
+def Decode(data):
+    #data = open("holiwi.bin", 'rb').read()
     base64_decoded = base64.decodebytes(data)
     file = open("nuevo.xlsx", 'wb')
     file.write(base64_decoded)
 
-EscribirExcel()
-Encode()
-Decode()
+_grupos = []
+_carreras = []
+_buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
+
+_grupos, _carreras = CargarDatos()
+ParseData(_buckets, _grupos)
+EscribirExcel(_buckets, _carreras)
+resultado = Encode(archivo_output)
+Decode(resultado)
