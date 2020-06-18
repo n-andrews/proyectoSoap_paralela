@@ -2,7 +2,7 @@
    0   ,  1 ,     2  ,     3   ,  4  ,     5    ,    6   ,   7
  Grupo, Nem, Ranking, Lenguaje, Mate, Cs o Hist, Vacantes, Grupo
 
-* En carreras 3 campos
+* En carreras.csv 3 campos
  Nombre, Vacantes, Grupo
 
 * En los datos.csv  7 campos.
