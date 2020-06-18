@@ -19,7 +19,7 @@ try:
     encoded = base64.b64encode(data)
     data.close()
     nomArchivo,archivo64 = client.service.algoritmo(nombre,data)
-    archivo64 = archivo64.split(',',1)[1]
+    """archivo64 = archivo64.split(',',1)[1]"""
     xlDecoded = base64.b64decode(archivo64)
     xlFile = open(nomArchivo+'.xlsx','wb')
     xlFile.write(xlDecoded)
