@@ -5,10 +5,6 @@ import base64
 archivo_grupos = "grupos.csv"
 archivo_carreras = "carreras.csv"
 
-# Nombre de los archivos (debug)
-archivo_datos = "ejemplo.csv"
-archivo_output = "holiwi.xlsx"
-
 # Agrear ordenados de mayor a menor y eliminar los excedentes 
 def AgregarDePana(Bucket, valor, gnumber, grupos):
     # Flag de si entró el valor o no.
@@ -58,11 +54,14 @@ def CargarDatos():
     return grupos, carreras
 
 #Parsear postulantes
-def ParseData(buckets, grupos):
-    file = open(archivo_datos, "r")
-    for line in file:
+def ParseData(buckets, grupos, datos):
+    print(datos)
+    datos = datos.split('\n')
+    for line in datos:
         string = line.split(";")
         # Pasar a int
+        if(not string[0].isdigit()):
+            continue
         for i in range(7):
             string[i] = int(string[i])
 
@@ -90,12 +89,11 @@ def ParseData(buckets, grupos):
         #buckets[grupom].append(valor)
         #buckets = 
         AgregarDePana(buckets, valor, grupom, grupos)
-    file.close()
     #return buckets
 #print(buckets)
 
-def EscribirExcel(buckets, carreras):
-    excel = xlsxwriter.Workbook(archivo_output)
+def EscribirExcel(buckets, carreras, nombre):
+    excel = xlsxwriter.Workbook(nombre)
     for item in carreras:
         worksheets = []
         worksheets.append(excel.add_worksheet(item[0]))
@@ -118,7 +116,7 @@ def EscribirExcel(buckets, carreras):
     excel.close()
 
 # Recibe el nombre del archivo y retorna el string en b64 | Debería pedir los datos en vez del nombre.
-def Encode(archivo_out):
+def EncodeFile(archivo_out):
     data = open(archivo_out, 'rb').read()
     base64_encoded = base64.b64encode(data)
     #file = open("archivo.bin", 'wb').write(base64_encoded)
@@ -127,16 +125,6 @@ def Encode(archivo_out):
 # Recibe datos en b64 y los decodifica.
 def Decode(data):
     #data = open("holiwi.bin", 'rb').read()
-    base64_decoded = base64.decodebytes(data)
-    file = open("nuevo.xlsx", 'wb')
-    file.write(base64_decoded)
-
-_grupos = []
-_carreras = []
-_buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
-
-_grupos, _carreras = CargarDatos()
-ParseData(_buckets, _grupos)
-EscribirExcel(_buckets, _carreras)
-resultado = Encode(archivo_output)
-Decode(resultado)
+    base64_decoded = 0
+    base64.decode(data, base64_decoded)
+    return base64_decoded
