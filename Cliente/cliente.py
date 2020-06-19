@@ -1,6 +1,5 @@
-from zeep import Client
+from zeep import Client, Settings, Plugin
 import base64
-from zeep import Plugin
 
 class MyLoggingPlugin(Plugin):
     def ingress(self, envelope, http_headers, operation):
@@ -11,7 +10,8 @@ class MyLoggingPlugin(Plugin):
         http_headers['Content-Type']='text/csv; charset=utf-8;'
         return envelope, http_headers
 
-client = Client('http://localhost:1204/?wsdl', plugins=[MyLoggingPlugin()])
+settings = Settings(strict=False, xml_huge_tree=True)
+client = Client('http://localhost:1204/?wsdl', plugins=[MyLoggingPlugin()], settings=settings)
 nombre = input("Ingrese nombre deseado del archivo xlsx: ")
 ruta = input("Ingrese ruta del archivo csv: ")
 try:
