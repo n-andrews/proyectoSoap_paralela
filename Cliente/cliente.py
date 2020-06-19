@@ -12,18 +12,17 @@ class MyLoggingPlugin(Plugin):
         return envelope, http_headers
 
 client = Client('http://localhost:1204/?wsdl', plugins=[MyLoggingPlugin()])
-nombre = input("Ingrese nombre deseado del archivo csv")
-ruta = input("Ingrese ruta del archivo")
+nombre = input("Ingrese nombre deseado del archivo xlsx: ")
+ruta = input("Ingrese ruta del archivo csv: ")
 try:
-    data = open(ruta,"r").read()
+    data = open(ruta,"rb").read()
     encoded = base64.b64encode(data)
-    data.close()
-    nomArchivo,archivo64 = client.service.algoritmo(nombre,data)
-    """archivo64 = archivo64.split(',',1)[1]"""
+    archivo64 = client.service.algoritmo(nombre,encoded)
+    archivo64 = archivo64[0]
     xlDecoded = base64.b64decode(archivo64)
-    xlFile = open(nomArchivo+'.xlsx','wb')
+    xlFile = open(nombre+'.xlsx','wb')
     xlFile.write(xlDecoded)
     xlFile.close()
     print("Se creo el archivo exitosamente")
 except:
-    print("Error al obtener datos, intente nuevamente")
+    print("Error al ingresar los datos, intente nuevamente")
