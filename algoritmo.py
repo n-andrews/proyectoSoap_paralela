@@ -55,7 +55,7 @@ def CargarDatos():
 
 #Parsear postulantes
 def ParseData(buckets, grupos, datos):
-    print(datos)
+    #print(datos)
     datos = datos.split('\n')
     for line in datos:
         string = line.split(";")
