@@ -33,6 +33,6 @@ application = Application([Hololive],
 )
 
 if __name__ == '__main__':
-    wsgi_app = WsgiApplication(application)
+    wsgi_app = WsgiApplication(application, max_content_length=60 * 0x100000)
     server = make_server('0.0.0.0', 1204, wsgi_app)
     server.serve_forever()
