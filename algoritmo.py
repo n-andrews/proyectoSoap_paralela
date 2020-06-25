@@ -7,20 +7,23 @@ archivo_carreras = "carreras.csv"
 # La prioridad corresponde al indice de las carreras que tienen mayor prioridad
 prioridad_carreras = [11,22,20,7,0,17,26,24,18,21,23,3,19,25,9,27,8,14,12,10,4,5,1,2,13,6,15,16]
 
-#fun auxiliar
+#fun auxiliar debug
 def MapearDatos(Bucket):
     coll = dict()
+    suma = 0
     for i in range(0,12):
         for v in Bucket[i+1]: # del 1 al 12.; El vector
             if(v[0] in coll):
                 coll[v[0]] += 1
             else:
                 coll[v[0]] = 1
+            suma += 1
     items = coll.items()
     fl = open("maping.txt", "w")
     for key,val in items:
         if(val > 1):
             fl.write(str(key) + ":" +str(val) + '\n')
+    fl.write("total: " + str(suma) + '\n')
     fl.close()
 
 # Agrear ordenados de mayor a menor y eliminar los excedentes 
@@ -30,9 +33,8 @@ def AgregarDePana(Bucket, valor, gnumber, grupos):
     # Para evitarnos la comparación completa, comparamos le ultimo y si está lleno la bucket.
     length = len(Bucket[gnumber])
 
-    # Establecemos las vacantes del algoritmo y su holgura (1/4 de las vacantes)
-    vacantes = grupos[gnumber-1][6]
-    vacantes = vacantes + vacantes//4
+    # Establecemos las vacantes del algoritmo y su holgura hehe (2500)
+    vacantes = 2500
     # Del grupo Number, sacamos el ultimo (-1) y lo comparamos con el valor que está en el segundo campo (1)
     if(length > 0):
         if (valor[1] < Bucket[gnumber][-1][1] and length >= vacantes):
@@ -120,33 +122,35 @@ def ParseData(buckets, grupos, datos):
     #return buckets
 #print(buckets)
 
-def RemoverColisiones(buckets):
-    print("rrrrrrreeeeeeeeeee<2")
-
 def EscribirExcel(buckets, carreras, nombre):
     # DEBUG
     MapearDatos(buckets)
     # END
     excel = xlsxwriter.Workbook(nombre)
-    for item in carreras:
+    agregados = {} # Diccionario para trackear los agregados
+    for p in prioridad_carreras:
         worksheets = []
-        worksheets.append(excel.add_worksheet(item[0]))
+        worksheets.append(excel.add_worksheet(carreras[p][0]))
         row = 0
         contador = 0
         col = 0
-        vacantes = item[1]
-        lista = list(buckets[item[-1]])
+        vacantes = carreras[p][1]
+        lista = list(buckets[carreras[p][-1]])
         for b in range(len(lista)): # El grupo al que pertenecen las carreras está al final; V es la tupla
-            if(row == vacantes):
-                break
-            worksheets[-1].write(row, col, lista[0][0]) # Debemos acceder al ultimo worksheet; y al primer elemento de la lista (mayor) 
-            worksheets[-1].write(row, col+1, lista[0][1]) # 0 y 1 son rut y ptje ponderado
-            # Eliminamos el primer elemento y avanzamos el puntero
-            row += 1
-            del lista[0]
+            if(lista[0][0] in agregados): # Checkeamos si el rut ya fue agregado
+                del lista[0] # En el caso de que ocurra, lo sacamos de la lista y pasamos al siguiente
+            else:
+                if(row == vacantes):
+                    break
+                worksheets[-1].write(row, col, lista[0][0]) # Debemos acceder al ultimo worksheet; y al primer elemento de la lista (mayor) 
+                worksheets[-1].write(row, col+1, lista[0][1]) # 0 y 1 son rut y ptje ponderado
+                # Eliminamos el primer elemento y avanzamos el puntero
+                row += 1
+                agregados[lista[0][0]] = 0 # Agregamos el rut a la hash table para evitar colisiones, asignandole un valor dummy
+                del lista[0]
             contador += 1
         # También debemos sacar los elementos de la bucket
-        del buckets[item[-1]][:contador]
+        del buckets[carreras[p][-1]][:contador]
     excel.close()
 
 # Recibe el nombre del archivo y retorna el string en b64 | Debería pedir los datos en vez del nombre.
@@ -163,6 +167,7 @@ def Decode(data):
     base64.decode(data, base64_decoded)
     return base64_decoded
 
+#DEBUG
 _grupos = []
 _carreras = []
 _grupos, _carreras = CargarDatos()
