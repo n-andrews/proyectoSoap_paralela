@@ -7,24 +7,6 @@ archivo_carreras = "carreras.csv"
 # La prioridad corresponde al indice de las carreras que tienen mayor prioridad
 prioridad_carreras = [11,22,20,7,0,17,26,24,18,21,23,3,19,25,9,27,8,14,12,10,4,5,1,2,13,6,15,16]
 
-#fun auxiliar debug
-def MapearDatos(Bucket):
-    coll = dict()
-    suma = 0
-    for i in range(0,12):
-        for v in Bucket[i+1]: # del 1 al 12.; El vector
-            if(v[0] in coll):
-                coll[v[0]] += 1
-            else:
-                coll[v[0]] = 1
-            suma += 1
-    items = coll.items()
-    fl = open("maping.txt", "w")
-    for key,val in items:
-        if(val > 1):
-            fl.write(str(key) + ":" +str(val) + '\n')
-    fl.write("total: " + str(suma) + '\n')
-    fl.close()
 
 # Agrear ordenados de mayor a menor y eliminar los excedentes 
 def AgregarDePana(Bucket, valor, gnumber, grupos):
@@ -123,9 +105,6 @@ def ParseData(buckets, grupos, datos):
 #print(buckets)
 
 def EscribirExcel(buckets, carreras, nombre):
-    # DEBUG
-    MapearDatos(buckets)
-    # END
     excel = xlsxwriter.Workbook(nombre)
     agregados = {} # Diccionario para trackear los agregados
     for p in prioridad_carreras:
@@ -166,16 +145,3 @@ def Decode(data):
     base64_decoded = 0
     base64.decode(data, base64_decoded)
     return base64_decoded
-
-#DEBUG
-_grupos = []
-_carreras = []
-_grupos, _carreras = CargarDatos()
-_buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
-
-fl = open("output.bin", 'rb').read()
-base64_decoded = base64.decodebytes(fl)
-strng = base64_decoded.decode('utf-8')
-#data = a.Decode(data)
-ParseData(_buckets, _grupos, strng)
-EscribirExcel(_buckets, _carreras, "omedetou.xlsx")
