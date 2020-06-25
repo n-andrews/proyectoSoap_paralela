@@ -4,13 +4,41 @@ import base64
 # Informacion
 archivo_grupos = "grupos.csv"
 archivo_carreras = "carreras.csv"
+# La prioridad corresponde al indice de las carreras que tienen mayor prioridad
+prioridad_carreras = [11,22,20,7,0,17,26,24,18,21,23,3,19,25,9,27,8,14,12,10,4,5,1,2,13,6,15,16]
+
+#fun auxiliar
+def MapearDatos(Bucket):
+    coll = dict()
+    for i in range(0,12):
+        for v in Bucket[i+1]: # del 1 al 12.; El vector
+            if(v[0] in coll):
+                coll[v[0]] += 1
+            else:
+                coll[v[0]] = 1
+    items = coll.items()
+    fl = open("maping.txt", "w")
+    for key,val in items:
+        if(val > 1):
+            fl.write(str(key) + ":" +str(val) + '\n')
+    fl.close()
 
 # Agrear ordenados de mayor a menor y eliminar los excedentes 
 def AgregarDePana(Bucket, valor, gnumber, grupos):
     # Flag de si entró el valor o no.
     flag = False
-    # Si está vacío lo agregamos así nomá
+    # Para evitarnos la comparación completa, comparamos le ultimo y si está lleno la bucket.
     length = len(Bucket[gnumber])
+
+    # Establecemos las vacantes del algoritmo y su holgura (1/4 de las vacantes)
+    vacantes = grupos[gnumber-1][6]
+    vacantes = vacantes + vacantes//4
+    # Del grupo Number, sacamos el ultimo (-1) y lo comparamos con el valor que está en el segundo campo (1)
+    if(length > 0):
+        if (valor[1] < Bucket[gnumber][-1][1] and length >= vacantes):
+            return Bucket
+
+    # Si está vacío lo agregamos así nomá
     if length == 0:
         Bucket[gnumber].append(valor)
     else:
@@ -20,11 +48,11 @@ def AgregarDePana(Bucket, valor, gnumber, grupos):
                 flag = True
                 break
         # Si no ha entrado el valor, y el arreglo en la bucket es menor al máximo de vacantes por grupo, entonces lo agregamos al final
-        if(not flag and length < grupos[gnumber-1][2]):
+        if(not flag and length < vacantes):
             Bucket[gnumber].append(valor)
     
     # Revisamos si el diccionario modificado tiene más vacantes de lo disponible, eliminamos el último
-    if length > grupos[gnumber-1][6]:
+    if length > vacantes:
         del Bucket[gnumber][-1]
     return Bucket
     
@@ -75,24 +103,30 @@ def ParseData(buckets, grupos, datos):
             del string[5]
 
         # Ponderar
-        maximo = 0
-        grupom = 0
+        group_count = 0
         for g in grupos:
-            suma = 0
+            group_count+=1 #Contador para indicar el numero de grupo (para no tener qe reescribir el código)
+
+            promedio = 0
             for i in range(1,6):
-                suma += string[i] * g[i]
-            if(suma > maximo):
-                maximo = suma
-                grupom = g[-1]
-        valor.append(maximo) # Agregar el puntaje ponderado maximo
+                promedio += string[i] * g[i]
+
+            valor.append(promedio)
+            AgregarDePana(buckets, list(valor), group_count, grupos)
+            del valor[-1] # Un poco ineficiente, borramos el promedio
         # Funcion auxiliar: agregar de pana. (Ordenados)
         #buckets[grupom].append(valor)
         #buckets = 
-        AgregarDePana(buckets, valor, grupom, grupos)
     #return buckets
 #print(buckets)
 
+def RemoverColisiones(buckets):
+    print("rrrrrrreeeeeeeeeee<2")
+
 def EscribirExcel(buckets, carreras, nombre):
+    # DEBUG
+    MapearDatos(buckets)
+    # END
     excel = xlsxwriter.Workbook(nombre)
     for item in carreras:
         worksheets = []
@@ -128,3 +162,15 @@ def Decode(data):
     base64_decoded = 0
     base64.decode(data, base64_decoded)
     return base64_decoded
+
+_grupos = []
+_carreras = []
+_grupos, _carreras = CargarDatos()
+_buckets = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]}
+
+fl = open("output.bin", 'rb').read()
+base64_decoded = base64.decodebytes(fl)
+strng = base64_decoded.decode('utf-8')
+#data = a.Decode(data)
+ParseData(_buckets, _grupos, strng)
+EscribirExcel(_buckets, _carreras, "omedetou.xlsx")
