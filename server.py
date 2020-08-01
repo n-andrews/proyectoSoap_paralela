@@ -1,5 +1,5 @@
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 from spyne import Application, rpc, ServiceBase, \
     Integer, Unicode, String, ByteArray, File
 from spyne import Iterable
